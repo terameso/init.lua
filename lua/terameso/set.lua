@@ -48,7 +48,6 @@ vim.opt.spelllang = "en_us"
 vim.g.have_nerd_font = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
-vim.opt.timeoutlen = 300
 vim.opt.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 vim.opt.cursorline = true
