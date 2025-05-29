@@ -6,12 +6,6 @@ return {
   "sQVe/sort.nvim",
   "github/copilot.vim",
   {
-    "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
-    config = function()
-      require("lsp_lines").setup()
-    end,
-  },
-  {
     "lewis6991/gitsigns.nvim",
     opts = {
       signs = {
