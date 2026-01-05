@@ -8,39 +8,40 @@ return {
     local null_ls = require("null-ls")
     local cspell = require("cspell")
 
-    -- Logic to find the cspell.json config file in your project
+    -- UPDATED: Logic to find config or fallback to global
     local function find_cspell_config_file()
+      -- 1. Look for a project-specific config file first
       local config_files = { "cspell.json", ".cspell.json", "cSpell.json", "cspell.config.js" }
       local found = vim.fs.find(config_files, {
         upward = true,
         stop = vim.loop.os_homedir(),
         path = vim.fs.dirname(vim.api.nvim_buf_get_name(0)),
       })
-      return found[1]
+
+      -- 2. If we found a project config, use it
+      if found[1] then
+        return found[1]
+      end
+
+      -- 3. FALLBACK: If no project config exists, force use of the global one
+      -- This ensures "nvim", "lazyvim", etc. are always known
+      return vim.fn.expand("~/.cspell.json")
     end
+
+    local cspell_config = {
+      find_json = find_cspell_config_file,
+    }
 
     null_ls.setup({
       sources = {
-        -- CSpell Source
         cspell.diagnostics.with({
-          -- Optional: Only run if a config file is found
-          -- condition = function(utils)
-          --   return utils.root_has_file({ "cspell.json", ".cspell.json" })
-          -- end,
-          config = {
-            find_json = find_cspell_config_file,
-          },
-          -- Make the errors appear as Hints (blue/grey) instead of Errors (red)
+          config = cspell_config,
           diagnostics_postprocess = function(diagnostic)
             diagnostic.severity = vim.diagnostic.severity.WARN
           end,
         }),
-
-        -- Code Actions (Apply suggestions)
         cspell.code_actions.with({
-          config = {
-            find_json = find_cspell_config_file,
-          },
+          config = cspell_config,
         }),
       },
     })
