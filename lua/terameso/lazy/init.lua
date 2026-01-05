@@ -4,7 +4,15 @@ return {
     name = "plenary"
   },
   "sQVe/sort.nvim",
-  "github/copilot.vim",
+  {
+    "github/copilot.vim",
+    config = function()
+      vim.g.copilot_filetypes = {
+        ["*"] = true,
+        ["go"] = false,
+      }
+    end
+  },
   {
     "lewis6991/gitsigns.nvim",
     opts = {

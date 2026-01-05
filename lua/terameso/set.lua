@@ -53,5 +53,5 @@ vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 vim.opt.cursorline = true
 
 -- Folding
-vim.opt.foldmethod = "indent"  -- Create folds based on indentation
-vim.opt.foldlevelstart = 99    -- Start with all folds open
+vim.opt.foldmethod = "marker"  -- Create folds based on indentation
+vim.opt.foldmarker = "#region,#endregion"

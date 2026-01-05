@@ -13,29 +13,63 @@ return {
     "j-hui/fidget.nvim",
   },
   config = function()
+    -- 1. Setup basics
+    require("fidget").setup({})
+    require("mason").setup()
+
     local cmp = require('cmp')
     local cmp_lsp = require("cmp_nvim_lsp")
+    local lspconfig = require("lspconfig")
+
     local capabilities = vim.tbl_deep_extend(
       "force",
       {},
       vim.lsp.protocol.make_client_capabilities(),
-      cmp_lsp.default_capabilities())
-    require("fidget").setup({})
-    require("mason").setup()
+      cmp_lsp.default_capabilities()
+    )
 
+    -- 2. Define Custom TSGO Config
+    -- We must do this BEFORE mason-lspconfig tries to set it up
+    local configs = require('lspconfig.configs')
+    if not configs.tsgo then
+      configs.tsgo = {
+        default_config = {
+          cmd = { 'tsgo', '--lsp', '--stdio' },
+          filetypes = {
+            'javascript',
+            'javascriptreact',
+            'javascript.jsx',
+            'typescript',
+            'typescriptreact',
+            'typescript.tsx',
+          },
+          root_dir = lspconfig.util.root_pattern(
+            'tsconfig.json',
+            'jsconfig.json',
+            'package.json',
+            '.git'
+          ),
+        },
+      }
+    end
+
+    -- 3. Mason LSP Config Setup
+    -- Ensure you use 'mason-lspconfig' here, NOT 'lspconfig'
     require("mason-lspconfig").setup({
       ensure_installed = {
         "lua_ls",
+        "tsgo", -- Ensure tsgo is managed by Mason
       },
       handlers = {
-        function(server_name) -- default handler (optional)
-          require("lspconfig")[server_name].setup {
+        -- Default handler: Setup any server installed by Mason
+        function(server_name)
+          lspconfig[server_name].setup {
             capabilities = capabilities
           }
         end,
 
+        -- Specific handler for Lua
         ["lua_ls"] = function()
-          local lspconfig = require("lspconfig")
           lspconfig.lua_ls.setup {
             capabilities = capabilities,
             settings = {
@@ -43,19 +77,21 @@ return {
                 runtime = { version = "Lua 5.1" },
                 diagnostics = {
                   globals = { "bit", "vim", "it", "describe", "before_each", "after_each" },
-                }
+                },
               }
             }
           }
         end,
       }
     })
+
+    -- 4. Autocompletion Setup
     local cmp_select = { behavior = cmp.SelectBehavior.Select }
 
     cmp.setup({
       snippet = {
         expand = function(args)
-          require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
+          require('luasnip').lsp_expand(args.body)
         end,
       },
       mapping = cmp.mapping.preset.insert({
@@ -66,15 +102,15 @@ return {
       }),
       sources = cmp.config.sources({
         { name = 'nvim_lsp' },
-        { name = 'luasnip' }, -- For luasnip users.
-        { name = 'codeium' },
+        { name = 'luasnip' },
+        -- { name = 'codeium' }, -- Uncomment if you have codeium installed
       }, {
         { name = 'buffer' },
       })
     })
 
+    -- 5. Diagnostics UI
     vim.diagnostic.config({
-      -- update_in_insert = true,
       virtual_text = false,
       float = {
         focusable = false,
@@ -85,28 +121,23 @@ return {
         prefix = "",
       },
     })
-    -- KickStart
-    group = vim.api.nvim_create_augroup('terameso-lsp-attach', { clear = true })
-    callback = function(event)
-      local map = function(keys, func, desc, mode)
-        mode = mode or 'n'
-        vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
-      end
 
-      map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-      map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
-    end
-    require('lspconfig').typos_lsp.setup({
-      -- Logging level of the language server. Logs appear in :LspLog. Defaults to error.
-      init_options = {
-        -- Custom config. Used together with a config file found in the workspace or its parents,
-        -- taking precedence for settings declared in both.
-        -- Equivalent to the typos `--config` cli argument.
-        config = '~/.config/nvim/typos.toml',
-        -- How typos are rendered in the editor, can be one of an Error, Warning, Info or Hint.
-        -- Defaults to error.
-        diagnosticSeverity = "Warning"
-      }
+    -- 6. Keymaps (KickStart style)
+    vim.api.nvim_create_autocmd('LspAttach', {
+      group = vim.api.nvim_create_augroup('terameso-lsp-attach', { clear = true }),
+      callback = function(event)
+        local map = function(keys, func, desc, mode)
+          mode = mode or 'n'
+          vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
+        end
+
+        -- Wrap these in pcall just in case telescope isn't loaded yet
+        local telescope_builtin = require('telescope.builtin')
+        map('gr', telescope_builtin.lsp_references, '[G]oto [R]eferences')
+        map('<leader>D', telescope_builtin.lsp_type_definitions, 'Type [D]efinition')
+        map('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
+        map('K', vim.lsp.buf.hover, 'Hover Documentation')
+      end
     })
   end
 }
