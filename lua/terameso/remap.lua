@@ -44,5 +44,12 @@ vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
 vim.keymap.set("v", "<leader>c", [[:s/^\(.\)/# \1/]])
 vim.keymap.set("v", "<leader>nc", [[:s/^# //]])
 
-
--- Kickstart
+-- GOOGLE CHAT MESSAGE FORMATTING
+vim.keymap.set("v", "<leader>gfg", 'c<font color="#4CAF50"><C-r>"</font><Esc>')
+vim.keymap.set("v", "<leader>gfy", 'c<font color="#FFC107"><C-r>"</font><Esc>')
+vim.keymap.set("n","<leader>mp", "<cmd>MarkdownPreview<CR>")
+--
+-- 99
+vim.keymap.set("n", "<leader>9m", function()
+  require("99.extensions.telescope").select_model()
+end)

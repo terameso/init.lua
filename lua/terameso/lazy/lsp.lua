@@ -17,38 +17,29 @@ return {
     require("fidget").setup({})
     require("mason").setup()
 
-    local cmp = require('cmp')
+    local cmp = require("cmp")
     local cmp_lsp = require("cmp_nvim_lsp")
     local lspconfig = require("lspconfig")
 
-    local capabilities = vim.tbl_deep_extend(
-      "force",
-      {},
-      vim.lsp.protocol.make_client_capabilities(),
-      cmp_lsp.default_capabilities()
-    )
+    local capabilities =
+      vim.tbl_deep_extend("force", {}, vim.lsp.protocol.make_client_capabilities(), cmp_lsp.default_capabilities())
 
     -- 2. Define Custom TSGO Config
     -- We must do this BEFORE mason-lspconfig tries to set it up
-    local configs = require('lspconfig.configs')
+    local configs = require("lspconfig.configs")
     if not configs.tsgo then
       configs.tsgo = {
         default_config = {
-          cmd = { 'tsgo', '--lsp', '--stdio' },
+          cmd = { "tsgo", "--lsp", "--stdio" },
           filetypes = {
-            'javascript',
-            'javascriptreact',
-            'javascript.jsx',
-            'typescript',
-            'typescriptreact',
-            'typescript.tsx',
+            "javascript",
+            "javascriptreact",
+            "javascript.jsx",
+            "typescript",
+            "typescriptreact",
+            "typescript.tsx",
           },
-          root_dir = lspconfig.util.root_pattern(
-            'tsconfig.json',
-            'jsconfig.json',
-            'package.json',
-            '.git'
-          ),
+          root_dir = lspconfig.util.root_pattern("tsconfig.json", "jsconfig.json", "package.json", ".git"),
         },
       }
     end
@@ -58,19 +49,20 @@ return {
     require("mason-lspconfig").setup({
       ensure_installed = {
         "lua_ls",
+        "lemminx",
         "tsgo", -- Ensure tsgo is managed by Mason
       },
       handlers = {
         -- Default handler: Setup any server installed by Mason
         function(server_name)
-          lspconfig[server_name].setup {
-            capabilities = capabilities
-          }
+          lspconfig[server_name].setup({
+            capabilities = capabilities,
+          })
         end,
 
         -- Specific handler for Lua
         ["lua_ls"] = function()
-          lspconfig.lua_ls.setup {
+          lspconfig.lua_ls.setup({
             capabilities = capabilities,
             settings = {
               Lua = {
@@ -78,11 +70,11 @@ return {
                 diagnostics = {
                   globals = { "bit", "vim", "it", "describe", "before_each", "after_each" },
                 },
-              }
-            }
-          }
+              },
+            },
+          })
         end,
-      }
+      },
     })
 
     -- 4. Autocompletion Setup
@@ -91,22 +83,22 @@ return {
     cmp.setup({
       snippet = {
         expand = function(args)
-          require('luasnip').lsp_expand(args.body)
+          require("luasnip").lsp_expand(args.body)
         end,
       },
       mapping = cmp.mapping.preset.insert({
-        ['<C-p>'] = cmp.mapping.select_prev_item(cmp_select),
-        ['<C-n>'] = cmp.mapping.select_next_item(cmp_select),
-        ['<C-y>'] = cmp.mapping.confirm({ select = true }),
+        ["<C-p>"] = cmp.mapping.select_prev_item(cmp_select),
+        ["<C-n>"] = cmp.mapping.select_next_item(cmp_select),
+        ["<C-y>"] = cmp.mapping.confirm({ select = true }),
         ["<C-Space>"] = cmp.mapping.complete(),
       }),
       sources = cmp.config.sources({
-        { name = 'nvim_lsp' },
-        { name = 'luasnip' },
+        { name = "nvim_lsp" },
+        { name = "luasnip" },
         -- { name = 'codeium' }, -- Uncomment if you have codeium installed
       }, {
-        { name = 'buffer' },
-      })
+        { name = "buffer" },
+      }),
     })
 
     -- 5. Diagnostics UI
@@ -123,21 +115,21 @@ return {
     })
 
     -- 6. Keymaps (KickStart style)
-    vim.api.nvim_create_autocmd('LspAttach', {
-      group = vim.api.nvim_create_augroup('terameso-lsp-attach', { clear = true }),
+    vim.api.nvim_create_autocmd("LspAttach", {
+      group = vim.api.nvim_create_augroup("terameso-lsp-attach", { clear = true }),
       callback = function(event)
         local map = function(keys, func, desc, mode)
-          mode = mode or 'n'
-          vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
+          mode = mode or "n"
+          vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
         end
 
         -- Wrap these in pcall just in case telescope isn't loaded yet
-        local telescope_builtin = require('telescope.builtin')
-        map('gr', telescope_builtin.lsp_references, '[G]oto [R]eferences')
-        map('<leader>D', telescope_builtin.lsp_type_definitions, 'Type [D]efinition')
-        map('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
-        map('K', vim.lsp.buf.hover, 'Hover Documentation')
-      end
+        local telescope_builtin = require("telescope.builtin")
+        map("gr", telescope_builtin.lsp_references, "[G]oto [R]eferences")
+        map("<leader>D", telescope_builtin.lsp_type_definitions, "Type [D]efinition")
+        map("gd", vim.lsp.buf.definition, "[G]oto [D]efinition")
+        map("K", vim.lsp.buf.hover, "Hover Documentation")
+      end,
     })
-  end
+  end,
 }

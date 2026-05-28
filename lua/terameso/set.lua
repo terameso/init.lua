@@ -11,9 +11,9 @@ vim.opt.expandtab = true
 vim.api.nvim_create_autocmd("BufEnter", {
   callback = function()
     if vim.bo.filetype == "yaml" then
-      vim.opt.tabstop = 4
-      vim.opt.softtabstop = 4
-      vim.opt.shiftwidth = 4
+      vim.opt.tabstop = 2
+      vim.opt.softtabstop = 2
+      vim.opt.shiftwidth = 2
       vim.opt.expandtab = true
     end
   end,
@@ -43,15 +43,20 @@ vim.opt.updatetime = 50
 vim.opt.spell = true
 vim.opt.spelllang = "en_us"
 
-
 -- Kickstart
 vim.g.have_nerd_font = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.list = true
-vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+vim.opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 vim.opt.cursorline = true
 
 -- Folding
-vim.opt.foldmethod = "marker"  -- Create folds based on indentation
+vim.opt.foldmethod = "marker" -- Create folds based on indentation
 vim.opt.foldmarker = "#region,#endregion"
+
+vim.filetype.add({
+  extension = {
+    svg = "xml",
+  },
+})
