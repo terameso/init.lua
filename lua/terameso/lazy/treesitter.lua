@@ -1,36 +1,49 @@
 return {
   "nvim-treesitter/nvim-treesitter",
-  branch = "master", -- Keep the legacy API used by this config (nvim-treesitter.configs).
+  branch = "main",
+  lazy = false,
   build = ":TSUpdate",
   config = function()
-    require("nvim-treesitter.configs").setup({
-      -- A list of parser names, or "all"
-      ensure_installed = {
-        "vimdoc", "javascript", "typescript", "c", "lua",
-        "jsdoc", "bash",
-      },
+    local parsers = {
+      "vimdoc",
+      "javascript",
+      "typescript",
+      "tsx",
+      "c",
+      "lua",
+      "jsdoc",
+      "bash",
+      "markdown",
+      "markdown_inline",
+    }
 
-      -- Install parsers synchronously (only applied to `ensure_installed`)
-      sync_install = false,
+    require("nvim-treesitter").setup()
+    require("nvim-treesitter").install(parsers)
 
-      -- Automatically install missing parsers when entering buffer
-      -- Recommendation: set to false if you don"t have `tree-sitter` CLI installed locally
-      auto_install = true,
+    local parser_by_filetype = {
+      help = "vimdoc",
+      javascript = "javascript",
+      javascriptreact = "javascript",
+      typescript = "typescript",
+      typescriptreact = "tsx",
+      c = "c",
+      lua = "lua",
+      bash = "bash",
+      sh = "bash",
+      markdown = "markdown",
+    }
 
-      indent = {
-        enable = true
-      },
+    vim.api.nvim_create_autocmd("FileType", {
+      group = vim.api.nvim_create_augroup("terameso_treesitter", { clear = true }),
+      callback = function(event)
+        local parser = parser_by_filetype[vim.bo[event.buf].filetype]
+        if not parser then
+          return
+        end
 
-      highlight = {
-        -- `false` will disable the whole extension
-        enable = true,
-
-        -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-        -- Set this to `true` if you depend on "syntax" being enabled (like for indentation).
-        -- Using this option may slow down your editor, and you may see some duplicate highlights.
-        -- Instead of true it can also be a list of languages
-        additional_vim_regex_highlighting = { "markdown" },
-      },
+        pcall(vim.treesitter.start, event.buf, parser)
+        vim.bo[event.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+      end,
     })
-  end
+  end,
 }
