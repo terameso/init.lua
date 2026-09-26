@@ -1,5 +1,6 @@
 return {
   "nvim-treesitter/nvim-treesitter",
+  branch = "master", -- Keep the legacy API used by this config (nvim-treesitter.configs).
   build = ":TSUpdate",
   config = function()
     require("nvim-treesitter.configs").setup({
